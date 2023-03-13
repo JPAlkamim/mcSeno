@@ -3,54 +3,63 @@ import timeit
 import numpy as np
 import matplotlib.pyplot as plt
 
-def taylor_seno(x, grau):
-    f = x
-    seno = x
-    for n in range(1, grau+1):
-        f = -f * x**2 / ((2*n) * (2*n+1))
-        seno += f
-    return seno
+
+def taylor_seno(x):
+    K = -1.0/6.0
+    M = 1.0/120.0
+    N = -1.0/5040.0
+    P = 1.0/362880.0
+    Q = -1.0/39916800.0
+
+    y = x*x
+
+    return x * (1 + y * (K + y * (M + y * (N + y * (P + Q * y)))))
+
 
 def pade_seno(x):
-    p = [71/240, -71/1152, 71/8064, -71/72576, 71/798336]
-    q = [1, -1/6, 1/120, -1/5040, 1/362880]
-    u = x*x
-    num = p[4]
-    for i in range(3, -1, -1):
-        num = p[i] + num * u
-    den = q[4]
-    for i in range(3, -1, -1):
-        den = q[i] + den * u
-    return x * num / den
+    P1 = -241.0/1650.0
+    P2 = 601.0/118800.0
+    P3 = -121.0/2268000.0
+    B = 17.0/825.0
+    D = 19.0/118800.0
+
+    y = x*x
+
+    p = x * (1 + y * (P1 + y * (P2 + y * P3)))
+    q = 1 + y * (B + D * y)
+
+    return p/q
+
 
 # Intervalo de ângulos de -π/4 a π/4
 x = np.linspace(-math.pi/4, math.pi/4, num=1000)
 
-# Cálculo dos valores do seno usando a função seno, série de Taylor e polinômio de Padé
-seno = np.sin(x)
-seno_taylor = np.array([taylor_seno(xi, 11) for xi in x])
-seno_pade = pade_seno(x)
+# Valores reais da função seno
+seno_real = np.sin(x)
 
-# Cálculo dos erros
-erro_taylor = np.abs(seno - seno_taylor)
-erro_pade = np.abs(seno - seno_pade)
+# Aproximação da função seno com a série de Taylor
+seno_aprox_taylor = np.array([taylor_seno(xi) for xi in x])
 
-# Plotagem do gráfico dos erros
-plt.plot(x, erro_taylor, label='Erro série de Taylor')
-plt.plot(x, erro_pade, label='Erro polinômio de Padé')
-plt.xlabel('Ângulo (rad)')
-plt.ylabel('Erro')
+# Aproximação da função seno com a série de Padé
+seno_aprox_pade = np.array([pade_seno(xi) for xi in x])
+
+# Erro absoluto da aproximação com a série de Taylor
+erro_taylor = abs(seno_real - seno_aprox_taylor)
+
+# Erro absoluto da aproximação com a série de Padé
+erro_pade = abs(seno_real - seno_aprox_pade)
+
+# Plotando o erro absoluto das aproximações das funções
+plt.plot(x, erro_taylor, linestyle='-', label='Taylor')
+plt.plot(x, erro_pade, linestyle='--', label='Padé')
+
+# Definindo o título e os rótulos dos eixos do gráfico
+plt.title("Erro absoluto das aproximações da função seno")
+plt.xlabel("Ângulo (rad)")
+plt.ylabel("Erro absoluto")
+
+# Adicionando uma legenda ao gráfico
 plt.legend()
+
+# Mostrando o gráfico
 plt.show()
-
-# Definir um array com 1000 valores de -π/4 a π/4
-valores = np.linspace(-np.pi/4, np.pi/4, num=1000)
-
-# Medição do tempo de execução da função pade_seno para 1000 valores de entrada
-tempo_pade = timeit.timeit(lambda: [pade_seno(x) for x in valores], number=1000)
-
-# Medição do tempo de execução da função taylor_seno para 1000 valores de entrada
-tempo_taylor = timeit.timeit(lambda: [taylor_seno(x, 11) for x in valores], number=1000)
-
-print(f"Tempo de execução polinômio de Padé: {tempo_pade:.5f}")
-print(f"Tempo de execução série de Taylor: {tempo_taylor:.5f}")
