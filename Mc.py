@@ -63,3 +63,16 @@ plt.legend()
 
 # Mostrando o gráfico
 plt.show()
+
+
+# Intervalo de ângulos de -π/4 a π/4
+x = np.linspace(-math.pi/4, math.pi/4, num=1000)
+
+# Medindo o tempo de execução da função de Taylor
+tempo_taylor = timeit.timeit(lambda: [taylor_seno(xi) for xi in x], number=1000)
+
+# Medindo o tempo de execução da função de Padé
+tempo_pade = timeit.timeit(lambda: [pade_seno(xi) for xi in x], number=1000)
+
+print("Tempo de execução da função de Taylor:", tempo_taylor)
+print("Tempo de execução da função de Padé:", tempo_pade)
